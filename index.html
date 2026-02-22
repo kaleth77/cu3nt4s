@@ -159,7 +159,8 @@ Entrar
 <div>💵 Cap Total: <span id="capTotal">0</span></div>
 <div>📈 Ganancia Total: <span id="gananciaGeneral">0</span></div>
 </div>
-
+<input type="text" id="nombreInput" placeholder="Escribe tu nombre">
+<button onclick="guardar()">Guardar</button>
 <script>
 
 let tabla = document.querySelector("#tabla tbody");
@@ -324,6 +325,42 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
 });
+
+</script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQmOBimHd3kY7e1ebwekmbIsFg65fcB-o",
+    authDomain: "cuentass-ce6af.firebaseapp.com",
+    projectId: "cuentass-ce6af",
+    storageBucket: "cuentass-ce6af.firebasestorage.app",
+    messagingSenderId: "512482056422",
+    appId: "1:512482056422:web:a671600a82a003656e8327"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+window.guardar = async function() {
+  const nombre = document.getElementById("nombreInput").value;
+
+  try {
+    await addDoc(collection(db, "usuarios"), {
+      nombre: nombre
+    });
+
+    alert("Guardado correctamente 🔥");
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+  
 
 </script>
 
