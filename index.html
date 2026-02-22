@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabla Marzo PRO</title>
+<title>Tabla PRO</title>
 
 <style>
 body{
@@ -17,6 +17,16 @@ body{
 h2{
     text-align:center;
     font-size:18px;
+}
+
+select{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+    background:#1a1a1a;
+    color:white;
+    border:none;
+    border-radius:6px;
 }
 
 table{
@@ -46,10 +56,11 @@ input{
 }
 
 img{
-    width:50px;
-    height:50px;
+    width:45px;
+    height:45px;
     object-fit:cover;
     border-radius:6px;
+    margin:2px;
 }
 
 button{
@@ -78,7 +89,7 @@ button{
 </head>
 <body>
 
-<!-- 🔐 PANTALLA DE BLOQUEO -->
+<!-- 🔐 BLOQUEO -->
 <div id="bloqueo" style="
 position:fixed;
 top:0;
@@ -108,12 +119,28 @@ Entrar
 
 </div>
 
-<h2>📊 TABLA DE GANANCIAS - MARZO</h2>
+<!-- SELECTOR DE MES -->
+<select id="selectorMes">
+<option value="enero">Enero</option>
+<option value="febrero">Febrero</option>
+<option value="marzo" selected>Marzo</option>
+<option value="abril">Abril</option>
+<option value="mayo">Mayo</option>
+<option value="junio">Junio</option>
+<option value="julio">Julio</option>
+<option value="agosto">Agosto</option>
+<option value="septiembre">Septiembre</option>
+<option value="octubre">Octubre</option>
+<option value="noviembre">Noviembre</option>
+<option value="diciembre">Diciembre</option>
+</select>
+
+<h2>📊 TABLA DE GANANCIAS</h2>
 
 <table id="tabla">
 <thead>
 <tr>
-<th>Foto</th>
+<th>Fotos</th>
 <th>Producto</th>
 <th>Costo</th>
 <th>Venta</th>
@@ -136,6 +163,7 @@ Entrar
 <script>
 
 let tabla = document.querySelector("#tabla tbody");
+let mesActual = document.getElementById("selectorMes").value;
 
 function formatearNumero(valor){
     valor = valor.replace(/\D/g, "");
@@ -151,9 +179,11 @@ function agregarFila(data = {}){
 
     fila.innerHTML = `
         <td>
-            <input type="file" accept="image/*">
+            <input type="file" class="file1" accept="image/*">
+            <input type="file" class="file2" accept="image/*">
             <br>
-            <img src="${data.img || ''}">
+            <img class="img1" src="${data.img1 || ''}">
+            <img class="img2" src="${data.img2 || ''}">
         </td>
         <td><input type="text" value="${data.nombre || ''}"></td>
         <td><input type="text" class="numero" value="${data.costo || ''}"></td>
@@ -175,13 +205,24 @@ function agregarFila(data = {}){
         });
     });
 
-    let fileInput = fila.querySelector("input[type='file']");
-    let img = fila.querySelector("img");
+    let file1 = fila.querySelector(".file1");
+    let file2 = fila.querySelector(".file2");
+    let img1 = fila.querySelector(".img1");
+    let img2 = fila.querySelector(".img2");
 
-    fileInput.addEventListener("change", function(){
+    file1.addEventListener("change", function(){
         let reader = new FileReader();
         reader.onload = function(e){
-            img.src = e.target.result;
+            img1.src = e.target.result;
+            guardarDatos();
+        }
+        reader.readAsDataURL(this.files[0]);
+    });
+
+    file2.addEventListener("change", function(){
+        let reader = new FileReader();
+        reader.onload = function(e){
+            img2.src = e.target.result;
             guardarDatos();
         }
         reader.readAsDataURL(this.files[0]);
@@ -235,7 +276,8 @@ function guardarDatos(){
 
     for(let fila of tabla.rows){
         datos.push({
-            img: fila.querySelector("img").src,
+            img1: fila.querySelector(".img1").src,
+            img2: fila.querySelector(".img2").src,
             nombre: fila.cells[1].children[0].value,
             costo: fila.cells[2].children[0].value,
             venta: fila.cells[3].children[0].value,
@@ -243,12 +285,14 @@ function guardarDatos(){
         });
     }
 
-    localStorage.setItem("tablaMarzo", JSON.stringify(datos));
+    localStorage.setItem("tabla_" + mesActual, JSON.stringify(datos));
 }
 
 function cargarDatos(){
 
-    let datos = JSON.parse(localStorage.getItem("tablaMarzo"));
+    tabla.innerHTML = "";
+
+    let datos = JSON.parse(localStorage.getItem("tabla_" + mesActual));
 
     if(datos){
         datos.forEach(dato=>agregarFila(dato));
@@ -257,9 +301,14 @@ function cargarDatos(){
     }
 }
 
+document.getElementById("selectorMes").addEventListener("change", function(){
+    mesActual = this.value;
+    cargarDatos();
+});
+
 cargarDatos();
 
-/* 🔐 LÓGICA DE CONTRASEÑA */
+/* 🔐 CONTRASEÑA */
 document.addEventListener("DOMContentLoaded", function(){
 
     document.getElementById("btnEntrar").addEventListener("click", function(){
