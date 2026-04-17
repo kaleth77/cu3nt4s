@@ -83,7 +83,7 @@ gap:5px;
 
 <script>
 
-const URL="https://script.google.com/macros/s/AKfycbzYSrtVMNfcbFrT1MiqNen-2FR1NPjiW6HMfHTZyHolCfglz9Gh8JwGqQ3X653rfDa0Ng/exec";
+const URL="https://script.google.com/macros/s/AKfycbx_3ns9sT8cvcqQI7CxuZzsabVhLSYkA0TTLmTpwxzf-6-E1XMHp8qVN31klDYVatVo8w/exec";
 
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
@@ -196,6 +196,8 @@ porcentaje
 
 fetch(URL,{
 method:"POST",
+mode:"no-cors",
+headers:{"Content-Type":"text/plain"},
 body:JSON.stringify({datos:productos})
 })
 .then(()=>alert("Guardado 🔥"))
