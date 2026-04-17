@@ -10,7 +10,7 @@ body{font-family:Arial;background:#0f0f0f;color:white;margin:0;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
 input,select{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;border-radius:5px;}
-img{width:45px;height:45px;border-radius:6px;margin:2px;}
+img{width:45px;height:45px;border-radius:6px;margin:2px;background:#333;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
 button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
 
@@ -25,13 +25,12 @@ display:flex;
 gap:5px;
 }
 
-/* Estilo para las filas que ya están en Google Sheets */
 .enviado {
-    background: #004d40 !important; /* Verde oscuro */
+    background: #004d40 !important;
     opacity: 0.8;
 }
 .enviado input {
-    pointer-events: none; /* No permite editar lo ya guardado */
+    pointer-events: none;
     color: #aaa;
 }
 </style>
@@ -91,7 +90,6 @@ function limpiarNumero(valor){
     return Number(String(valor).replace(/\./g,""));
 }
 
-// 💾 RESPALDO EN MEMORIA DEL CELULAR
 function respaldar(){
     let datos = [];
     for(let f of tabla.rows){
@@ -102,7 +100,7 @@ function respaldar(){
             inv: f.cells[3].children[0].value,
             ven: f.cells[4].children[0].value,
             can: f.cells[5].children[0].value,
-            est: f.classList.contains("enviado") // Guardamos si ya está bloqueada
+            est: f.classList.contains("enviado")
         });
     }
     localStorage.setItem("kp_historial", JSON.stringify(datos));
@@ -110,6 +108,7 @@ function respaldar(){
 
 function cargar(){
     let historial = localStorage.getItem("kp_historial");
+    tabla.innerHTML = "";
     if(historial){
         JSON.parse(historial).forEach(d => agregarFila(d));
     } else {
@@ -119,7 +118,7 @@ function cargar(){
 
 function agregarFila(d = null){
     let f=tabla.insertRow();
-    if(d && d.est) f.classList.add("enviado"); // Si ya estaba guardada, se bloquea
+    if(d && d.est) f.classList.add("enviado");
 
     f.innerHTML=`
         <td><input class="imginput" value="${d?d.i1:''}"><br><img src="${d?d.i1:''}"></td>
@@ -130,6 +129,7 @@ function agregarFila(d = null){
         <td><input type="number" value="${d?d.can:'1'}" oninput="respaldar()"></td>
     `;
 
+    // 🔥 Arreglo para que las fotos carguen al escribir o elegir del catálogo
     f.querySelectorAll(".imginput").forEach((inp,i)=>{
         inp.oninput=e=>{
             f.querySelectorAll("img")[i].src=e.target.value;
@@ -145,13 +145,11 @@ function agregarFila(d = null){
     });
 }
 
-// 🔥 GUARDAR SOLO LO NUEVO
 function guardar(){
     let productos = [];
     let filasNuevas = [];
 
     for(let f of tabla.rows){
-        // Si la fila YA tiene el candado (clase "enviado"), la saltamos
         if(f.classList.contains("enviado")) continue;
 
         let nombre = f.cells[2].children[0].value;
@@ -174,7 +172,7 @@ function guardar(){
         filasNuevas.push(f);
     }
 
-    if(productos.length === 0) return alert("No hay nada nuevo para guardar");
+    if(productos.length === 0) return alert("No hay nada nuevo");
 
     fetch(URL, {
         method: "POST",
@@ -182,23 +180,21 @@ function guardar(){
         body: JSON.stringify({ "datos": productos })
     })
     .then(() => {
-        alert("¡Nuevos datos guardados en Google Sheets! 🔥");
-        // Ponemos el "candado" a las filas que acabamos de enviar
+        alert("¡Guardado en Sheets! 🔥");
         filasNuevas.forEach(f => f.classList.add("enviado"));
-        respaldar(); // Guardamos el estado de bloqueo en el celular
+        respaldar();
     })
-    .catch(() => alert("Error al conectar ❌"));
+    .catch(() => alert("Error ❌"));
 }
 
 function borrarHistorial(){
-    if(confirm("¿Borrar todo el registro de la pantalla?")){
+    if(confirm("¿Borrar todo?")){
         localStorage.removeItem("kp_historial");
         tabla.innerHTML = "";
         agregarFila();
     }
 }
 
-// Catálogo (Tu código)
 fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
 .then(res=>res.json()).then(data=>{
     data.forEach(file=>{
@@ -206,7 +202,13 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
             let url=file.download_url;
             let img=document.createElement("img");
             img.src=url;
-            img.onclick=()=>{ if(inputActivo){ inputActivo.value=url; inputActivo.dispatchEvent(new Event("input")); } };
+            img.onclick=()=>{ 
+                if(inputActivo){ 
+                    inputActivo.value=url; 
+                    // Esto dispara el cambio para que la foto se vea
+                    inputActivo.dispatchEvent(new Event("input")); 
+                } 
+            };
             let cat = "cat_o";
             if(file.name.includes("h")) cat="cat_h";
             else if(file.name.includes("m")) cat="cat_m";
