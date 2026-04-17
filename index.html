@@ -61,12 +61,12 @@ button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;co
 
 <script>
 
-const BASE="https://raw.githubusercontent.com/kaleth77/kpreloj/main/";
+const BASE="https://raw.githubusercontent.com/kaleth77/kpreloj/main/img/";
 
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
 
-// 🔥 Detectar input activo
+// Detectar input activo
 document.addEventListener("focusin",e=>{
 if(e.target.classList.contains("imginput")){
 inputActivo=e.target;
@@ -102,44 +102,48 @@ f.querySelectorAll("img")[i].src=BASE+e.target.value;
 });
 }
 
-// 🔥 Crear catálogo automático por rango
-function crearCatalogo(prefijo, contenedor, max=120){
-for(let i=1;i<=max;i++){
-let nombres=[
-`${prefijo}${i}.jpg`,
-`${prefijo}${i}.jpeg`,
-`${prefijo}${i}.JPG`,
-`${prefijo}${i}.JPEG`
+// 🔥 LISTA REAL (BÁSICA + FUNCIONAL)
+// (Puedes agregar más nombres aquí cuando subas nuevos)
+const imagenes = [
+"hombre.jpeg",
+"mujer.jpeg",
+"pareja.jpeg",
+"otros.jpeg",
+"llave.jpg",
+"qr.jpg",
+"recordatorio.JPEG",
+
+// EJEMPLOS RELOJES (puedes seguir agregando)
+"relojcurrenh1.jpg","relojcurrenh2.jpg","relojcurrenh3.jpg",
+"relojcurrenm1.jpg","relojcurrenm2.jpg",
+"relojcurrenp1.jpg","relojcurrenp2.jpg",
+"relojcurreno1.jpg","relojcurreno2.jpg"
 ];
 
-nombres.forEach(nombre=>{
-let img=new Image();
+// Crear catálogo
+imagenes.forEach(nombre=>{
+
+let categoria="cat_o";
+
+if(nombre.startsWith("relojcurrenh")) categoria="cat_h";
+else if(nombre.startsWith("relojcurrenm")) categoria="cat_m";
+else if(nombre.startsWith("relojcurrenp")) categoria="cat_p";
+else if(nombre.startsWith("relojcurreno")) categoria="cat_o";
+
+let img=document.createElement("img");
 img.src=BASE+nombre;
 
-img.onload=()=>{
-let mini=document.createElement("img");
-mini.src=img.src;
-
-mini.onclick=()=>{
+img.onclick=()=>{
 if(inputActivo){
 inputActivo.value=nombre;
 inputActivo.dispatchEvent(new Event("input"));
 }
 };
 
-contenedor.appendChild(mini);
-};
+document.getElementById(categoria).appendChild(img);
+
 });
-}
-}
 
-// 🔥 Crear categorías
-crearCatalogo("relojcurrenh",document.getElementById("cat_h"));
-crearCatalogo("relojcurrenm",document.getElementById("cat_m"));
-crearCatalogo("relojcurrenp",document.getElementById("cat_p"));
-crearCatalogo("relojcurreno",document.getElementById("cat_o"));
-
-// Primera fila
 agregarFila();
 
 </script>
