@@ -56,7 +56,8 @@ gap:5px;
 <table id="tabla">
 <thead>
 <tr>
-<th>Img</th>
+<th>Img1</th>
+<th>Img2</th>
 <th>Nombre</th>
 <th>Invertido</th>
 <th>Venta</th>
@@ -66,19 +67,40 @@ gap:5px;
 <tbody></tbody>
 </table>
 
+<h2 style="padding:10px;">🖼️ Catálogo</h2>
+
+<h3 style="padding-left:10px;">👨 Hombre</h3>
+<div id="cat_h" class="galeria"></div>
+
+<h3 style="padding-left:10px;">👩 Mujer</h3>
+<div id="cat_m" class="galeria"></div>
+
+<h3 style="padding-left:10px;">💑 Pareja</h3>
+<div id="cat_p" class="galeria"></div>
+
+<h3 style="padding-left:10px;">📦 Otros</h3>
+<div id="cat_o" class="galeria"></div>
+
 <script>
 
 const URL="https://script.google.com/macros/s/AKfycbzmtXkMOSfvKuZ41jMq0eVObJVh75XUMBnocxBK005s_otZtfUHcuZScEamihcgO36eiQ/exec";
 
 let tabla=document.querySelector("#tabla tbody");
+let inputActivo=null;
 
-// 🔥 FORMATO 10.000
+// detectar input activo
+document.addEventListener("focusin",e=>{
+if(e.target.classList.contains("imginput")){
+inputActivo=e.target;
+}
+});
+
+// 🔥 formato 10.000
 function formatearNumero(valor){
 valor = valor.replace(/\./g,"").replace(/\D/g,"");
 return valor.replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
 
-// 🔥 quitar puntos para guardar
 function limpiarNumero(valor){
 return Number(valor.replace(/\./g,""));
 }
@@ -88,18 +110,21 @@ let f=tabla.insertRow();
 
 f.innerHTML=`
 <td><input class="imginput"><br><img></td>
+<td><input class="imginput"><br><img></td>
 <td><input placeholder="Nombre"></td>
 <td><input class="numero" placeholder="Invertido"></td>
 <td><input class="numero" placeholder="Venta"></td>
 <td><input type="number" value="1"></td>
 `;
 
-// preview imagen
-f.querySelector(".imginput").oninput=e=>{
-f.querySelector("img").src=e.target.value;
+// preview imágenes
+f.querySelectorAll(".imginput").forEach((inp,i)=>{
+inp.oninput=e=>{
+f.querySelectorAll("img")[i].src=e.target.value;
 };
+});
 
-// formato automático
+// formato números
 f.querySelectorAll(".numero").forEach(inp=>{
 inp.oninput=e=>{
 let cursor = e.target.selectionStart;
@@ -110,6 +135,38 @@ e.target.setSelectionRange(cursor,cursor);
 
 }
 
+// 🔥 CATALOGO AUTOMÁTICO
+fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
+.then(res=>res.json())
+.then(data=>{
+data.forEach(file=>{
+if(file.type==="file"){
+
+let nombre=file.name;
+let url=file.download_url;
+let categoria="cat_o";
+
+if(nombre.startsWith("relojcurrenh")) categoria="cat_h";
+else if(nombre.startsWith("relojcurrenm")) categoria="cat_m";
+else if(nombre.startsWith("relojcurrenp")) categoria="cat_p";
+else if(nombre.startsWith("relojcurreno")) categoria="cat_o";
+
+let img=document.createElement("img");
+img.src=url;
+
+img.onclick=()=>{
+if(inputActivo){
+inputActivo.value=url;
+inputActivo.dispatchEvent(new Event("input"));
+}
+};
+
+document.getElementById(categoria).appendChild(img);
+
+}
+});
+});
+
 // 🔥 GUARDAR
 function guardar(){
 
@@ -117,17 +174,18 @@ let productos=[];
 
 for(let f of tabla.rows){
 
-let invertido = limpiarNumero(f.cells[2].children[0].value);
-let venta = limpiarNumero(f.cells[3].children[0].value);
-let cant = Number(f.cells[4].children[0].value);
+let invertido = limpiarNumero(f.cells[3].children[0].value);
+let venta = limpiarNumero(f.cells[4].children[0].value);
+let cant = Number(f.cells[5].children[0].value);
 
 let total = venta * cant;
 let ganancia = total - (invertido * cant);
 let porcentaje = (ganancia / (invertido * cant)) * 100;
 
 productos.push([
-f.cells[0].children[0].value, // img
-f.cells[1].children[0].value, // nombre
+f.cells[0].children[0].value,
+f.cells[1].children[0].value,
+f.cells[2].children[0].value,
 document.getElementById("mes").value,
 invertido,
 total,
