@@ -3,22 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabla Cuentas</title>
+<title>Tabla PRO</title>
 
 <style>
-body{font-family:Arial;background:#0f0f0f;color:white;padding:10px;}
+body{font-family:Arial;background:#0f0f0f;color:white;margin:0;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
 input{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;}
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
-button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;color:white;}
+button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
+.barra{
+position:sticky;
+top:0;
+z-index:999;
+background:#0f0f0f;
+padding:10px;
+border-bottom:1px solid #333;
+display:flex;
+gap:5px;
+}
 </style>
 </head>
 
 <body>
 
-<h2>📈 TABLA</h2>
+<!-- 🔥 BARRA FIJA -->
+<div class="barra">
+<input type="text" id="nombreInput" placeholder="Nombre">
+<button onclick="guardar()" style="background:#00c853;">💾 Guardar</button>
+<button onclick="agregarFila()" style="background:#2196f3;">➕</button>
+</div>
+
+<h2 style="padding:10px;">📈 TABLA</h2>
 
 <table id="tabla">
 <thead>
@@ -34,23 +51,18 @@ button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;co
 <tbody></tbody>
 </table>
 
-<button onclick="agregarFila()">➕ Agregar</button>
+<h2 style="padding:10px;">🖼️ Catálogo</h2>
 
-<input type="text" id="nombreInput" placeholder="Nombre">
-<button onclick="guardar()">Guardar en Google ☁️</button>
-
-<h2>🖼️ Catálogo</h2>
-
-<h3>👨 Hombre</h3>
+<h3 style="padding-left:10px;">👨 Hombre</h3>
 <div id="cat_h" class="galeria"></div>
 
-<h3>👩 Mujer</h3>
+<h3 style="padding-left:10px;">👩 Mujer</h3>
 <div id="cat_m" class="galeria"></div>
 
-<h3>💑 Pareja</h3>
+<h3 style="padding-left:10px;">💑 Pareja</h3>
 <div id="cat_p" class="galeria"></div>
 
-<h3>📦 Otros</h3>
+<h3 style="padding-left:10px;">📦 Otros</h3>
 <div id="cat_o" class="galeria"></div>
 
 <script>
@@ -86,7 +98,7 @@ f.querySelectorAll("img")[i].src=e.target.value;
 });
 }
 
-// 🔥 CATALOGO DESDE GITHUB
+// 🔥 CATALOGO AUTOMATICO DESDE GITHUB
 fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
 .then(res=>res.json())
 .then(data=>{
@@ -123,7 +135,7 @@ document.getElementById(categoria).appendChild(img);
 
 });
 
-// 🔥 GUARDAR EN GOOGLE (SOLO LINKS)
+// 🔥 GUARDAR EN GOOGLE
 function guardar(){
 
 let productos=[];
@@ -149,9 +161,10 @@ method:"POST",
 body:JSON.stringify(datos)
 });
 
-alert("Guardado con imágenes 🔥");
+alert("Guardado 🔥");
 }
 
+// iniciar con una fila
 agregarFila();
 
 </script>
