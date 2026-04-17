@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabla PRO</title>
+<title>Tabla Cuentas</title>
 
 <style>
 body{font-family:Arial;background:#0f0f0f;color:white;padding:10px;}
@@ -12,6 +12,7 @@ th,td{border:1px solid #333;padding:5px;text-align:center;}
 input{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;}
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
+button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;color:white;}
 </style>
 </head>
 
@@ -35,14 +36,26 @@ img{width:45px;height:45px;border-radius:6px;margin:2px;}
 
 <button onclick="agregarFila()">➕ Agregar</button>
 
-<h2>🖼️ Catálogo automático</h2>
+<input type="text" id="nombreInput" placeholder="Nombre">
+<button onclick="guardar()">Guardar en Google ☁️</button>
 
-<div id="cat_h"></div>
-<div id="cat_m"></div>
-<div id="cat_p"></div>
-<div id="cat_o"></div>
+<h2>🖼️ Catálogo</h2>
+
+<h3>👨 Hombre</h3>
+<div id="cat_h" class="galeria"></div>
+
+<h3>👩 Mujer</h3>
+<div id="cat_m" class="galeria"></div>
+
+<h3>💑 Pareja</h3>
+<div id="cat_p" class="galeria"></div>
+
+<h3>📦 Otros</h3>
+<div id="cat_o" class="galeria"></div>
 
 <script>
+
+const URL="https://script.google.com/macros/s/AKfycbzYLP0nitSFnqpR_6eWFfSEraVlOBDG6wOlgaZ-_x19uTmqCztPJJsmdFjnOUwDK5nNSw/exec";
 
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
@@ -73,8 +86,7 @@ f.querySelectorAll("img")[i].src=e.target.value;
 });
 }
 
-// 🔥 AQUÍ ESTÁ LA MAGIA (API GITHUB)
-
+// 🔥 CATALOGO DESDE GITHUB
 fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
 .then(res=>res.json())
 .then(data=>{
@@ -110,6 +122,35 @@ document.getElementById(categoria).appendChild(img);
 });
 
 });
+
+// 🔥 GUARDAR EN GOOGLE (SOLO LINKS)
+function guardar(){
+
+let productos=[];
+
+for(let f of tabla.rows){
+productos.push({
+img1:f.cells[0].children[0].value,
+img2:f.cells[1].children[0].value,
+nombre:f.cells[2].children[0].value,
+costo:f.cells[3].children[0].value,
+venta:f.cells[4].children[0].value,
+cantidad:f.cells[5].children[0].value
+});
+}
+
+let datos={
+nombre:document.getElementById("nombreInput").value,
+productos:productos
+};
+
+fetch(URL,{
+method:"POST",
+body:JSON.stringify(datos)
+});
+
+alert("Guardado con imágenes 🔥");
+}
 
 agregarFila();
 
