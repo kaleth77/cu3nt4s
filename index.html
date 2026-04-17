@@ -8,39 +8,44 @@
 <style>
 body{font-family:Arial;margin:0;padding:10px;background:#0f0f0f;color:white;}
 h2{text-align:center;font-size:18px;}
-select,input,button{border-radius:6px;}
-select{width:100%;padding:8px;margin-bottom:10px;background:#1a1a1a;color:white;border:none;}
+select{width:100%;padding:10px;background:#1a1a1a;color:white;border:none;border-radius:8px;margin-bottom:10px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
 th{background:#1e1e1e;}
-input{width:100%;padding:4px;text-align:center;background:#1a1a1a;border:none;color:white;font-size:12px;}
-img{width:45px;height:45px;object-fit:cover;border-radius:6px;margin:2px;}
-button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;color:white;font-weight:bold;}
-.resumen{margin-top:15px;background:#000;padding:10px;font-size:14px;border-radius:8px;}
+input{width:100%;padding:5px;background:#1a1a1a;color:white;border:none;}
+button{width:100%;padding:12px;margin-top:10px;background:#00c853;border:none;color:white;font-weight:bold;border-radius:8px;}
+.resumen{margin-top:10px;background:#000;padding:10px;border-radius:8px;}
 </style>
 </head>
 
 <body>
 
-<div id="bloqueo" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;">
-<h2>🔐 Acceso Privado</h2>
-<input type="password" id="claveInput" placeholder="Clave">
-<button id="btnEntrar">Entrar</button>
-<p id="errorClave" style="color:red;"></p>
-</div>
-
 <select id="selectorMes">
 <option value="enero">Enero</option>
 <option value="febrero">Febrero</option>
-<option value="marzo" selected>Marzo</option>
+<option value="marzo">Marzo</option>
+<option value="abril">Abril</option>
+<option value="mayo">Mayo</option>
+<option value="junio">Junio</option>
+<option value="julio">Julio</option>
+<option value="agosto">Agosto</option>
+<option value="septiembre">Septiembre</option>
+<option value="octubre">Octubre</option>
+<option value="noviembre">Noviembre</option>
+<option value="diciembre">Diciembre</option>
 </select>
 
-<h2>📈 TABLA</h2>
+<h2>📈 TABLA DE CUENTAS</h2>
 
 <table id="tabla">
 <thead>
 <tr>
-<th>Fotos</th><th>Producto</th><th>Costo</th><th>Venta</th><th>Ganancia</th><th>Cant</th><th>Total</th>
+<th>Producto</th>
+<th>Costo</th>
+<th>Venta</th>
+<th>Ganancia</th>
+<th>Cant</th>
+<th>Total</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -64,47 +69,31 @@ const URL="https://script.google.com/macros/s/AKfycbzYLP0nitSFnqpR_6eWFfSEraVlOB
 let tabla=document.querySelector("#tabla tbody");
 let mesActual=selectorMes.value;
 
-function limpiar(v){return parseFloat(v.replace(/\./g,''))||0;}
+function limpiar(v){return parseFloat((v||"").toString().replace(/\./g,''))||0;}
 
 function agregarFila(d={}){
 let f=tabla.insertRow();
+
 f.innerHTML=`
-<td>
-<input type="file" class="f1">
-<input type="file" class="f2">
-<br>
-<img class="img1" src="${d.img1||''}">
-<img class="img2" src="${d.img2||''}">
-</td>
 <td><input value="${d.nombre||''}"></td>
-<td><input class="num" value="${d.costo||''}"></td>
-<td><input class="num" value="${d.venta||''}"></td>
+<td><input value="${d.costo||''}"></td>
+<td><input value="${d.venta||''}"></td>
 <td class="ganancia">0</td>
 <td><input type="number" value="${d.cantidad||1}"></td>
 <td class="total">0</td>
 `;
 
 f.querySelectorAll("input").forEach(i=>{
-i.oninput=()=>{calcFila(f);}
-});
-
-["f1","f2"].forEach((c,i)=>{
-f.querySelector("."+c).onchange=e=>{
-let r=new FileReader();
-r.onload=x=>{
-f.querySelector(".img"+(i+1)).src=x.target.result;
-};
-r.readAsDataURL(e.target.files[0]);
-};
+i.oninput=()=>calcFila(f);
 });
 
 calcFila(f);
 }
 
 function calcFila(f){
-let c=limpiar(f.cells[2].children[0].value);
-let v=limpiar(f.cells[3].children[0].value);
-let n=parseInt(f.cells[5].children[0].value)||0;
+let c=limpiar(f.cells[1].children[0].value);
+let v=limpiar(f.cells[2].children[0].value);
+let n=parseInt(f.cells[4].children[0].value)||0;
 
 let g=v-c;
 let t=g*n;
@@ -119,9 +108,9 @@ function calcResumen(){
 let ci=0,ct=0,gg=0;
 
 for(let f of tabla.rows){
-let c=limpiar(f.cells[2].children[0].value);
-let v=limpiar(f.cells[3].children[0].value);
-let n=parseInt(f.cells[5].children[0].value)||0;
+let c=limpiar(f.cells[1].children[0].value);
+let v=limpiar(f.cells[2].children[0].value);
+let n=parseInt(f.cells[4].children[0].value)||0;
 
 ci+=c*n;
 ct+=v*n;
@@ -140,12 +129,10 @@ let productos=[];
 
 for(let f of tabla.rows){
 productos.push({
-img1:f.querySelector(".img1").src,
-img2:f.querySelector(".img2").src,
-nombre:f.cells[1].children[0].value,
-costo:f.cells[2].children[0].value,
-venta:f.cells[3].children[0].value,
-cantidad:f.cells[5].children[0].value
+nombre:f.cells[0].children[0].value,
+costo:f.cells[1].children[0].value,
+venta:f.cells[2].children[0].value,
+cantidad:f.cells[4].children[0].value
 });
 }
 
@@ -163,7 +150,7 @@ method:"POST",
 body:JSON.stringify(datos)
 });
 
-alert("Guardado en la nube 🔥");
+alert("Guardado 🔥");
 }
 
 function cargar(){
@@ -172,11 +159,12 @@ fetch(URL)
 .then(data=>{
 tabla.innerHTML="";
 
-let ultimo=data.reverse().find(x=>x[1]===mesActual);
+let registros=data.filter(x=>x[2]===mesActual);
 
-if(ultimo){
-let productos=JSON.parse(ultimo[2]);
-productos.forEach(p=>agregarFila(p));
+if(registros.length){
+let ultimo=registros[registros.length-1];
+
+nombreInput.value=ultimo[1];
 }else{
 agregarFila();
 }
@@ -189,12 +177,6 @@ cargar();
 };
 
 cargar();
-
-btnEntrar.onclick=()=>{
-claveInput.value==="kaleth0712"
-?bloqueo.style.display="none"
-:errorClave.innerText="Clave incorrecta";
-};
 </script>
 
 </body>
