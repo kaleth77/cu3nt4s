@@ -7,36 +7,19 @@
 
 <style>
 body{font-family:Arial;margin:0;padding:10px;background:#0f0f0f;color:white;}
-h2{text-align:center;font-size:18px;}
-select{width:100%;padding:10px;background:#1a1a1a;color:white;border:none;border-radius:8px;margin-bottom:10px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
-th{background:#1e1e1e;}
-input{width:100%;padding:5px;background:#1a1a1a;color:white;border:none;}
+input{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;}
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
-button{width:100%;padding:12px;margin-top:10px;background:#00c853;border:none;color:white;font-weight:bold;border-radius:8px;}
-.resumen{margin-top:10px;background:#000;padding:10px;border-radius:8px;}
+button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;color:white;}
+.galeria img{width:60px;height:60px;cursor:pointer;}
+.categoria{margin-top:15px;}
 </style>
 </head>
 
 <body>
 
-<select id="selectorMes">
-<option value="enero">Enero</option>
-<option value="febrero">Febrero</option>
-<option value="marzo">Marzo</option>
-<option value="abril">Abril</option>
-<option value="mayo">Mayo</option>
-<option value="junio">Junio</option>
-<option value="julio">Julio</option>
-<option value="agosto">Agosto</option>
-<option value="septiembre">Septiembre</option>
-<option value="octubre">Octubre</option>
-<option value="noviembre">Noviembre</option>
-<option value="diciembre">Diciembre</option>
-</select>
-
-<h2>📈 TABLA DE CUENTAS</h2>
+<h2>📈 TABLA</h2>
 
 <table id="tabla">
 <thead>
@@ -46,9 +29,7 @@ button{width:100%;padding:12px;margin-top:10px;background:#00c853;border:none;co
 <th>Producto</th>
 <th>Costo</th>
 <th>Venta</th>
-<th>Ganancia</th>
 <th>Cant</th>
-<th>Total</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -56,149 +37,111 @@ button{width:100%;padding:12px;margin-top:10px;background:#00c853;border:none;co
 
 <button onclick="agregarFila()">➕ Agregar</button>
 
-<div class="resumen">
-<div>Invertido: <span id="capInvertido">0</span></div>
-<div>Total: <span id="capTotal">0</span></div>
-<div>Ganancia: <span id="gananciaGeneral">0</span></div>
-<div>%: <span id="porcentaje">0%</span></div>
+<h2>🖼️ Catálogo</h2>
+
+<div class="categoria">
+<h3>👨 Hombre</h3>
+<div id="cat_h" class="galeria"></div>
 </div>
 
-<input type="text" id="nombreInput" placeholder="Nombre">
-<button onclick="guardar()">Guardar en la nube ☁️</button>
+<div class="categoria">
+<h3>👩 Mujer</h3>
+<div id="cat_m" class="galeria"></div>
+</div>
+
+<div class="categoria">
+<h3>💑 Pareja</h3>
+<div id="cat_p" class="galeria"></div>
+</div>
+
+<div class="categoria">
+<h3>📦 Otros</h3>
+<div id="cat_o" class="galeria"></div>
+</div>
 
 <script>
-const URL="https://script.google.com/macros/s/AKfycbzYLP0nitSFnqpR_6eWFfSEraVlOBDG6wOlgaZ-_x19uTmqCztPJJsmdFjnOUwDK5nNSw/exec";
+
+const BASE="https://raw.githubusercontent.com/kaleth77/kpreloj/main/";
 
 let tabla=document.querySelector("#tabla tbody");
-let mesActual=selectorMes.value;
+let inputActivo=null;
 
-function limpiar(v){return parseFloat((v||"").toString().replace(/\./g,''))||0;}
+// 🔥 Detectar input activo
+document.addEventListener("focusin",e=>{
+if(e.target.classList.contains("imginput")){
+inputActivo=e.target;
+}
+});
 
-function agregarFila(d={}){
+function agregarFila(){
 let f=tabla.insertRow();
 
 f.innerHTML=`
 <td>
-<input placeholder="URL imagen" class="img1input" value="${d.img1||''}">
-<img class="img1" src="${d.img1||''}">
+<input class="imginput">
+<br>
+<img class="img1">
 </td>
 
 <td>
-<input placeholder="URL imagen" class="img2input" value="${d.img2||''}">
-<img class="img2" src="${d.img2||''}">
+<input class="imginput">
+<br>
+<img class="img2">
 </td>
 
-<td><input value="${d.nombre||''}"></td>
-<td><input value="${d.costo||''}"></td>
-<td><input value="${d.venta||''}"></td>
-<td class="ganancia">0</td>
-<td><input type="number" value="${d.cantidad||1}"></td>
-<td class="total">0</td>
+<td><input></td>
+<td><input></td>
+<td><input></td>
+<td><input type="number" value="1"></td>
 `;
 
-f.querySelector(".img1input").oninput=e=>{
-f.querySelector(".img1").src=e.target.value;
+f.querySelectorAll(".imginput").forEach((inp,i)=>{
+inp.oninput=e=>{
+f.querySelectorAll("img")[i].src=BASE+e.target.value;
 };
-
-f.querySelector(".img2input").oninput=e=>{
-f.querySelector(".img2").src=e.target.value;
-};
-
-f.querySelectorAll("input").forEach(i=>{
-i.oninput=()=>calcFila(f);
-});
-
-calcFila(f);
-}
-
-function calcFila(f){
-let c=limpiar(f.cells[3].children[0].value);
-let v=limpiar(f.cells[4].children[0].value);
-let n=parseInt(f.cells[6].children[0].value)||0;
-
-let g=v-c;
-let t=g*n;
-
-f.querySelector(".ganancia").innerText=g;
-f.querySelector(".total").innerText=t;
-
-calcResumen();
-}
-
-function calcResumen(){
-let ci=0,ct=0,gg=0;
-
-for(let f of tabla.rows){
-let c=limpiar(f.cells[3].children[0].value);
-let v=limpiar(f.cells[4].children[0].value);
-let n=parseInt(f.cells[6].children[0].value)||0;
-
-ci+=c*n;
-ct+=v*n;
-gg+=(v-c)*n;
-}
-
-capInvertido.innerText=ci;
-capTotal.innerText=ct;
-gananciaGeneral.innerText=gg;
-porcentaje.innerText=ci?((gg/ci)*100).toFixed(2)+"%":"0%";
-}
-
-function guardar(){
-
-let productos=[];
-
-for(let f of tabla.rows){
-productos.push({
-img1:f.querySelector(".img1input").value,
-img2:f.querySelector(".img2input").value,
-nombre:f.cells[2].children[0].value,
-costo:f.cells[3].children[0].value,
-venta:f.cells[4].children[0].value,
-cantidad:f.cells[6].children[0].value
 });
 }
 
-let datos={
-nombre:nombreInput.value,
-mes:mesActual,
-productos:productos,
-invertido:capInvertido.innerText,
-total:capTotal.innerText,
-ganancia:gananciaGeneral.innerText
+// 🔥 Crear catálogo automático por rango
+function crearCatalogo(prefijo, contenedor, max=120){
+for(let i=1;i<=max;i++){
+let nombres=[
+`${prefijo}${i}.jpg`,
+`${prefijo}${i}.jpeg`,
+`${prefijo}${i}.JPG`,
+`${prefijo}${i}.JPEG`
+];
+
+nombres.forEach(nombre=>{
+let img=new Image();
+img.src=BASE+nombre;
+
+img.onload=()=>{
+let mini=document.createElement("img");
+mini.src=img.src;
+
+mini.onclick=()=>{
+if(inputActivo){
+inputActivo.value=nombre;
+inputActivo.dispatchEvent(new Event("input"));
+}
 };
 
-fetch(URL,{
-method:"POST",
-body:JSON.stringify(datos)
+contenedor.appendChild(mini);
+};
 });
-
-alert("Guardado 🔥");
+}
 }
 
-function cargar(){
-fetch(URL)
-.then(r=>r.json())
-.then(data=>{
-tabla.innerHTML="";
+// 🔥 Crear categorías
+crearCatalogo("relojcurrenh",document.getElementById("cat_h"));
+crearCatalogo("relojcurrenm",document.getElementById("cat_m"));
+crearCatalogo("relojcurrenp",document.getElementById("cat_p"));
+crearCatalogo("relojcurreno",document.getElementById("cat_o"));
 
-let registros=data.filter(x=>x[2]===mesActual);
-
-if(registros.length){
-let ultimo=registros[registros.length-1];
-nombreInput.value=ultimo[1];
-}else{
+// Primera fila
 agregarFila();
-}
-});
-}
 
-selectorMes.onchange=()=>{
-mesActual=selectorMes.value;
-cargar();
-};
-
-cargar();
 </script>
 
 </body>
