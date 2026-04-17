@@ -183,16 +183,15 @@ let ganancia = total - (invertido * cant);
 let porcentaje = (ganancia / (invertido * cant)) * 100;
 
 productos.push([
-f.cells[0].children[0].value,
-f.cells[1].children[0].value,
-f.cells[2].children[0].value,
-document.getElementById("mes").value,
-invertido,
-total,
-ganancia,
-porcentaje
+f.cells[0].children[0].value, // Img1
+f.cells[1].children[0].value, // Img2
+f.cells[2].children[0].value, // nombre
+document.getElementById("mes").value, // Mes
+invertido, // E
+total,     // F (vendido)
+ganancia,  // G
+porcentaje // H
 ]);
-
 }
 
 fetch(URL,{
