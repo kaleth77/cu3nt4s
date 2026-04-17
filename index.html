@@ -4,122 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tabla PRO</title>
-
 <style>
-body{
-    font-family: Arial, sans-serif;
-    margin:0;
-    padding:10px;
-    background:#0f0f0f;
-    color:white;
-}
-
-h2{
-    text-align:center;
-    font-size:18px;
-}
-
-select{
-    width:100%;
-    padding:8px;
-    margin-bottom:10px;
-    background:#1a1a1a;
-    color:white;
-    border:none;
-    border-radius:6px;
-}
-
-table{
-    width:100%;
-    border-collapse: collapse;
-    font-size:12px;
-}
-
-th, td{
-    border:1px solid #333;
-    padding:5px;
-    text-align:center;
-}
-
-th{
-    background:#1e1e1e;
-}
-
-input{
-    width:100%;
-    padding:4px;
-    text-align:center;
-    background:#1a1a1a;
-    border:none;
-    color:white;
-    font-size:12px;
-}
-
-img{
-    width:45px;
-    height:45px;
-    object-fit:cover;
-    border-radius:6px;
-    margin:2px;
-}
-
-button{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    background:#00c853;
-    border:none;
-    color:white;
-    font-weight:bold;
-    border-radius:6px;
-}
-
-.resumen{
-    margin-top:15px;
-    background:#000;
-    padding:10px;
-    font-size:14px;
-    border-radius:8px;
-}
-
-.resumen div{
-    margin:5px 0;
-}
+body{font-family:Arial;margin:0;padding:10px;background:#0f0f0f;color:white;}
+h2{text-align:center;font-size:18px;}
+select{width:100%;padding:8px;margin-bottom:10px;background:#1a1a1a;color:white;border:none;border-radius:6px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{border:1px solid #333;padding:5px;text-align:center;}
+th{background:#1e1e1e;}
+input{width:100%;padding:4px;text-align:center;background:#1a1a1a;border:none;color:white;font-size:12px;}
+img{width:45px;height:45px;object-fit:cover;border-radius:6px;margin:2px;}
+button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;color:white;font-weight:bold;border-radius:6px;}
+.resumen{margin-top:15px;background:#000;padding:10px;font-size:14px;border-radius:8px;}
+.resumen div{margin:5px 0;}
 </style>
 </head>
 <body>
 
-<!-- 🔐 BLOQUEO -->
-<div id="bloqueo" style="
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#000;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-z-index:9999;
-color:white;
-">
-
+<div id="bloqueo" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;color:white;">
 <h2>🔐 Acceso Privado</h2>
-
-<input type="password" id="claveInput" placeholder="Ingresa la clave"
-style="padding:10px; font-size:16px; margin:10px;">
-
-<button id="btnEntrar"
-style="padding:10px 20px; font-size:16px; background:#00c853; border:none; color:white;">
-Entrar
-</button>
-
+<input type="password" id="claveInput" placeholder="Ingresa la clave" style="padding:10px;font-size:16px;margin:10px;">
+<button id="btnEntrar">Entrar</button>
 <p id="errorClave" style="color:red;"></p>
-
 </div>
 
-<!-- SELECTOR DE MES -->
 <select id="selectorMes">
 <option value="enero">Enero</option>
 <option value="febrero">Febrero</option>
@@ -158,209 +65,110 @@ Entrar
 <div>💰 Cap Invertido: <span id="capInvertido">0</span></div>
 <div>💵 Cap Total: <span id="capTotal">0</span></div>
 <div>📈 Ganancia Total: <span id="gananciaGeneral">0</span></div>
+<div>📊 Porcentaje: <span id="porcentaje">0%</span></div>
 </div>
+
 <input type="text" id="nombreInput" placeholder="Escribe tu nombre">
 <button onclick="guardar()">Guardar</button>
+
 <script>
+const URL_SHEETS="https://script.google.com/macros/s/AKfycbzYLP0nitSFnqpR_6eWFfSEraVlOBDG6wOlgaZ-_x19uTmqCztPJJsmdFjnOUwDK5nNSw/exec";
+let tabla=document.querySelector("#tabla tbody");
+let mesActual=document.getElementById("selectorMes").value;
 
-let tabla = document.querySelector("#tabla tbody");
-let mesActual = document.getElementById("selectorMes").value;
+function formatearNumero(v){return v.replace(/\D/g,"").replace(/\B(?=(\d{3})+(?!\d))/g,".");}
+function limpiarNumero(v){return parseFloat(v.replace(/\./g,''))||0;}
+function calcularPorcentaje(i,g){return i===0?0:((g/i)*100).toFixed(2);}
 
-function formatearNumero(valor){
-    valor = valor.replace(/\D/g, "");
-    return valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+function agregarFila(data={}){
+let fila=tabla.insertRow();
+fila.innerHTML=`<td><input type="file" class="file1"><input type="file" class="file2"><br><img class="img1" src="${data.img1||''}"><img class="img2" src="${data.img2||''}"></td><td><input value="${data.nombre||''}"></td><td><input class="numero" value="${data.costo||''}"></td><td><input class="numero" value="${data.venta||''}"></td><td class="ganancia">0</td><td><input type="number" value="${data.cantidad||1}"></td><td class="total">0</td>`;
+fila.querySelectorAll("input").forEach(i=>{
+i.addEventListener("input",()=>{
+if(i.classList.contains("numero")) i.value=formatearNumero(i.value);
+calcularFila(fila);guardarDatos();
+});
+});
+["file1","file2"].forEach((c,i)=>{
+fila.querySelector("."+c).addEventListener("change",e=>{
+let r=new FileReader();
+r.onload=x=>{
+fila.querySelector(".img"+(i+1)).src=x.target.result;
+guardarDatos();
+};
+r.readAsDataURL(e.target.files[0]);
+});
+});
+calcularFila(fila);
 }
 
-function limpiarNumero(valor){
-    return parseFloat(valor.replace(/\./g,'')) || 0;
-}
-
-function agregarFila(data = {}){
-    let fila = tabla.insertRow();
-
-    fila.innerHTML = `
-        <td>
-            <input type="file" class="file1" accept="image/*">
-            <input type="file" class="file2" accept="image/*">
-            <br>
-            <img class="img1" src="${data.img1 || ''}">
-            <img class="img2" src="${data.img2 || ''}">
-        </td>
-        <td><input type="text" value="${data.nombre || ''}"></td>
-        <td><input type="text" class="numero" value="${data.costo || ''}"></td>
-        <td><input type="text" class="numero" value="${data.venta || ''}"></td>
-        <td class="ganancia">0</td>
-        <td><input type="number" value="${data.cantidad || 1}" min="1"></td>
-        <td class="total">0</td>
-    `;
-
-    let inputs = fila.querySelectorAll("input");
-
-    inputs.forEach(input=>{
-        input.addEventListener("input", ()=>{
-            if(input.classList.contains("numero")){
-                input.value = formatearNumero(input.value);
-            }
-            calcularFila(fila);
-            guardarDatos();
-        });
-    });
-
-    let file1 = fila.querySelector(".file1");
-    let file2 = fila.querySelector(".file2");
-    let img1 = fila.querySelector(".img1");
-    let img2 = fila.querySelector(".img2");
-
-    file1.addEventListener("change", function(){
-        let reader = new FileReader();
-        reader.onload = function(e){
-            img1.src = e.target.result;
-            guardarDatos();
-        }
-        reader.readAsDataURL(this.files[0]);
-    });
-
-    file2.addEventListener("change", function(){
-        let reader = new FileReader();
-        reader.onload = function(e){
-            img2.src = e.target.result;
-            guardarDatos();
-        }
-        reader.readAsDataURL(this.files[0]);
-    });
-
-    calcularFila(fila);
-}
-
-function calcularFila(fila){
-
-    let costo = limpiarNumero(fila.cells[2].children[0].value);
-    let venta = limpiarNumero(fila.cells[3].children[0].value);
-    let cantidad = parseInt(fila.cells[5].children[0].value) || 0;
-
-    let ganancia = venta - costo;
-    let total = ganancia * cantidad;
-
-    fila.querySelector(".ganancia").innerText = ganancia.toLocaleString('es-CO');
-    fila.querySelector(".total").innerText = total.toLocaleString('es-CO');
-
-    actualizarResumen();
+function calcularFila(f){
+let c=limpiarNumero(f.cells[2].children[0].value);
+let v=limpiarNumero(f.cells[3].children[0].value);
+let n=parseInt(f.cells[5].children[0].value)||0;
+let g=v-c,t=g*n;
+f.querySelector(".ganancia").innerText=g.toLocaleString('es-CO');
+f.querySelector(".total").innerText=t.toLocaleString('es-CO');
+actualizarResumen();
 }
 
 function actualizarResumen(){
+let ci=0,ct=0,gg=0;
+for(let f of tabla.rows){
+let c=limpiarNumero(f.cells[2].children[0].value);
+let v=limpiarNumero(f.cells[3].children[0].value);
+let n=parseInt(f.cells[5].children[0].value)||0;
+ci+=c*n;ct+=v*n;gg+=(v-c)*n;
+}
+let p=calcularPorcentaje(ci,gg);
+capInvertido.innerText=ci.toLocaleString('es-CO');
+capTotal.innerText=ct.toLocaleString('es-CO');
+gananciaGeneral.innerText=gg.toLocaleString('es-CO');
+porcentaje.innerText=p+"%";
+}
 
-    let filas = tabla.rows;
-
-    let capInvertido = 0;
-    let capTotal = 0;
-    let gananciaGeneral = 0;
-
-    for(let fila of filas){
-
-        let costo = limpiarNumero(fila.cells[2].children[0].value);
-        let venta = limpiarNumero(fila.cells[3].children[0].value);
-        let cantidad = parseInt(fila.cells[5].children[0].value) || 0;
-
-        capInvertido += costo * cantidad;
-        capTotal += venta * cantidad;
-        gananciaGeneral += (venta - costo) * cantidad;
-    }
-
-    document.getElementById("capInvertido").innerText = capInvertido.toLocaleString('es-CO');
-    document.getElementById("capTotal").innerText = capTotal.toLocaleString('es-CO');
-    document.getElementById("gananciaGeneral").innerText = gananciaGeneral.toLocaleString('es-CO');
+function guardar(){
+let datos={
+nombre:nombreInput.value,
+mes:mesActual,
+invertido:limpiarNumero(capInvertido.innerText),
+total:limpiarNumero(capTotal.innerText),
+ganancia:limpiarNumero(gananciaGeneral.innerText),
+porcentaje:calcularPorcentaje(limpiarNumero(capInvertido.innerText),limpiarNumero(gananciaGeneral.innerText))
+};
+fetch(URL_SHEETS,{method:"POST",body:JSON.stringify(datos)});
+alert("Guardado en Google Sheets 🔥");
 }
 
 function guardarDatos(){
-
-    let datos = [];
-
-    for(let fila of tabla.rows){
-        datos.push({
-            img1: fila.querySelector(".img1").src,
-            img2: fila.querySelector(".img2").src,
-            nombre: fila.cells[1].children[0].value,
-            costo: fila.cells[2].children[0].value,
-            venta: fila.cells[3].children[0].value,
-            cantidad: fila.cells[5].children[0].value
-        });
-    }
-
-    localStorage.setItem("tabla_" + mesActual, JSON.stringify(datos));
+let d=[];
+for(let f of tabla.rows){
+d.push({
+img1:f.querySelector(".img1").src,
+img2:f.querySelector(".img2").src,
+nombre:f.cells[1].children[0].value,
+costo:f.cells[2].children[0].value,
+venta:f.cells[3].children[0].value,
+cantidad:f.cells[5].children[0].value
+});
+}
+localStorage.setItem("tabla_"+mesActual,JSON.stringify(d));
 }
 
 function cargarDatos(){
-
-    tabla.innerHTML = "";
-
-    let datos = JSON.parse(localStorage.getItem("tabla_" + mesActual));
-
-    if(datos){
-        datos.forEach(dato=>agregarFila(dato));
-    }else{
-        agregarFila();
-    }
+tabla.innerHTML="";
+let d=JSON.parse(localStorage.getItem("tabla_"+mesActual));
+d?d.forEach(x=>agregarFila(x)):agregarFila();
 }
 
-document.getElementById("selectorMes").addEventListener("change", function(){
-    mesActual = this.value;
-    cargarDatos();
-});
-
+selectorMes.onchange=()=>{mesActual=selectorMes.value;cargarDatos();}
 cargarDatos();
 
-/* 🔐 CONTRASEÑA */
-document.addEventListener("DOMContentLoaded", function(){
-
-    document.getElementById("btnEntrar").addEventListener("click", function(){
-
-        let clave = document.getElementById("claveInput").value.trim();
-
-        if(clave === "kaleth0712"){ 
-            document.getElementById("bloqueo").style.display = "none";
-        } else {
-            document.getElementById("errorClave").innerText = "Clave incorrecta";
-        }
-
-    });
-
-});
-
-</script>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBQmOBimHd3kY7e1ebwekmbIsFg65fcB-o",
-    authDomain: "cuentass-ce6af.firebaseapp.com",
-    projectId: "cuentass-ce6af",
-    storageBucket: "cuentass-ce6af.firebasestorage.app",
-    messagingSenderId: "512482056422",
-    appId: "1:512482056422:web:a671600a82a003656e8327"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-window.guardar = async function() {
-  const nombre = document.getElementById("nombreInput").value;
-
-  try {
-    await addDoc(collection(db, "usuarios"), {
-      nombre: nombre
-    });
-
-    alert("Guardado correctamente 🔥");
-  } catch (error) {
-    console.error("Error:", error);
-  }
+btnEntrar.onclick=()=>{
+claveInput.value==="kaleth0712"
+?bloqueo.style.display="none"
+:errorClave.innerText="Clave incorrecta";
 };
-  
 </script>
 
 </body>
