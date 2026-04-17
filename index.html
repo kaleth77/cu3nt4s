@@ -169,40 +169,56 @@ document.getElementById(categoria).appendChild(img);
 
 // 🔥 GUARDAR
 function guardar(){
+    let productos = [];
+    let filas = tabla.rows;
 
-let productos=[];
+    if (filas.length === 0) {
+        alert("La tabla está vacía ⚠️");
+        return;
+    }
 
-for(let f of tabla.rows){
+    for(let f of filas){
+        let invVal = f.cells[3].children[0].value;
+        let venVal = f.cells[4].children[0].value;
+        let cantVal = f.cells[5].children[0].value;
 
-let invertido = limpiarNumero(f.cells[3].children[0].value);
-let venta = limpiarNumero(f.cells[4].children[0].value);
-let cant = Number(f.cells[5].children[0].value);
+        let invertido = limpiarNumero(invVal);
+        let venta = limpiarNumero(venVal);
+        let cant = Number(cantVal);
 
-let total = venta * cant;
-let ganancia = total - (invertido * cant);
-let porcentaje = (ganancia / (invertido * cant)) * 100;
+        if(!invVal || !venVal) continue; // Salta filas vacías
 
-productos.push([
-f.cells[0].children[0].value, // Img1
-f.cells[1].children[0].value, // Img2
-f.cells[2].children[0].value, // nombre
-document.getElementById("mes").value, // Mes
-invertido, // E
-total,     // F (vendido)
-ganancia,  // G
-porcentaje
-]);
-}
+        let total = venta * cant;
+        let ganancia = total - (invertido * cant);
+        let porcentaje = (invertido === 0) ? 0 : ((ganancia / (invertido * cant)) * 100).toFixed(1);
 
-fetch(URL,{
-method:"POST",
-mode:"no-cors",
-headers:{"Content-Type":"text/plain"},
-body:JSON.stringify({datos:productos})
-})
-.then(()=>alert("Guardado 🔥"))
-.catch(()=>alert("Error ❌"));
+        productos.push([
+            f.cells[0].children[0].value, // Img1 (Col A)
+            f.cells[1].children[0].value, // Img2 (Col B)
+            f.cells[2].children[0].value, // Nombre (Col C)
+            document.getElementById("mes").value, // Mes (Col D)
+            invertido, // Invertido (Col E)
+            total,     // Venta Total (Col F)
+            ganancia,  // Ganancia (Col G)
+            porcentaje + "%" // % (Col H)
+        ]);
+    }
 
+    if (productos.length === 0) return;
+
+    fetch(URL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ "datos": productos })
+    })
+    .then(() => {
+        alert("¡Enviado a Google Sheets! 🔥");
+        // Opcional: limpiar tabla tras guardar
+        // tabla.innerHTML = ""; 
+        // agregarFila();
+    })
+    .catch(err => alert("Error al conectar ❌"));
 }
 
 agregarFila();
