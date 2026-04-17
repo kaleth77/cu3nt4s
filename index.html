@@ -6,14 +6,12 @@
 <title>Tabla PRO</title>
 
 <style>
-body{font-family:Arial;margin:0;padding:10px;background:#0f0f0f;color:white;}
+body{font-family:Arial;background:#0f0f0f;color:white;padding:10px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
 input{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;}
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
-button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;color:white;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
-.categoria{margin-top:15px;}
 </style>
 </head>
 
@@ -37,36 +35,19 @@ button{width:100%;padding:10px;margin-top:10px;background:#00c853;border:none;co
 
 <button onclick="agregarFila()">➕ Agregar</button>
 
-<h2>🖼️ Catálogo</h2>
+<h2>🖼️ Catálogo automático</h2>
 
-<div class="categoria">
-<h3>👨 Hombre</h3>
-<div id="cat_h" class="galeria"></div>
-</div>
-
-<div class="categoria">
-<h3>👩 Mujer</h3>
-<div id="cat_m" class="galeria"></div>
-</div>
-
-<div class="categoria">
-<h3>💑 Pareja</h3>
-<div id="cat_p" class="galeria"></div>
-</div>
-
-<div class="categoria">
-<h3>📦 Otros</h3>
-<div id="cat_o" class="galeria"></div>
-</div>
+<div id="cat_h"></div>
+<div id="cat_m"></div>
+<div id="cat_p"></div>
+<div id="cat_o"></div>
 
 <script>
-
-const BASE="https://raw.githubusercontent.com/kaleth77/kpreloj/main/img/";
 
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
 
-// Detectar input activo
+// detectar input activo
 document.addEventListener("focusin",e=>{
 if(e.target.classList.contains("imginput")){
 inputActivo=e.target;
@@ -77,18 +58,8 @@ function agregarFila(){
 let f=tabla.insertRow();
 
 f.innerHTML=`
-<td>
-<input class="imginput">
-<br>
-<img class="img1">
-</td>
-
-<td>
-<input class="imginput">
-<br>
-<img class="img2">
-</td>
-
+<td><input class="imginput"><br><img></td>
+<td><input class="imginput"><br><img></td>
 <td><input></td>
 <td><input></td>
 <td><input></td>
@@ -97,31 +68,23 @@ f.innerHTML=`
 
 f.querySelectorAll(".imginput").forEach((inp,i)=>{
 inp.oninput=e=>{
-f.querySelectorAll("img")[i].src=BASE+e.target.value;
+f.querySelectorAll("img")[i].src=e.target.value;
 };
 });
 }
 
-// 🔥 LISTA REAL (BÁSICA + FUNCIONAL)
-// (Puedes agregar más nombres aquí cuando subas nuevos)
-const imagenes = [
-"hombre.jpeg",
-"mujer.jpeg",
-"pareja.jpeg",
-"otros.jpeg",
-"llave.jpg",
-"qr.jpg",
-"recordatorio.JPEG",
+// 🔥 AQUÍ ESTÁ LA MAGIA (API GITHUB)
 
-// EJEMPLOS RELOJES (puedes seguir agregando)
-"relojcurrenh1.jpg","relojcurrenh2.jpg","relojcurrenh3.jpg",
-"relojcurrenm1.jpg","relojcurrenm2.jpg",
-"relojcurrenp1.jpg","relojcurrenp2.jpg",
-"relojcurreno1.jpg","relojcurreno2.jpg"
-];
+fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
+.then(res=>res.json())
+.then(data=>{
 
-// Crear catálogo
-imagenes.forEach(nombre=>{
+data.forEach(file=>{
+
+if(file.type==="file"){
+
+let nombre=file.name;
+let url=file.download_url;
 
 let categoria="cat_o";
 
@@ -131,16 +94,20 @@ else if(nombre.startsWith("relojcurrenp")) categoria="cat_p";
 else if(nombre.startsWith("relojcurreno")) categoria="cat_o";
 
 let img=document.createElement("img");
-img.src=BASE+nombre;
+img.src=url;
 
 img.onclick=()=>{
 if(inputActivo){
-inputActivo.value=nombre;
+inputActivo.value=url;
 inputActivo.dispatchEvent(new Event("input"));
 }
 };
 
 document.getElementById(categoria).appendChild(img);
+
+}
+
+});
 
 });
 
