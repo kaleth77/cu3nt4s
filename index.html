@@ -9,10 +9,11 @@
 body{font-family:Arial;background:#0f0f0f;color:white;margin:0;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
-input{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;}
+input,select{background:#1a1a1a;color:white;border:none;padding:5px;border-radius:5px;}
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
 button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
+
 .barra{
 position:sticky;
 top:0;
@@ -22,6 +23,7 @@ padding:10px;
 border-bottom:1px solid #333;
 display:flex;
 gap:5px;
+flex-wrap:wrap;
 }
 </style>
 </head>
@@ -30,9 +32,27 @@ gap:5px;
 
 <!-- 🔥 BARRA FIJA -->
 <div class="barra">
+
+<select id="mes">
+<option>Enero</option>
+<option>Febrero</option>
+<option>Marzo</option>
+<option>Abril</option>
+<option>Mayo</option>
+<option>Junio</option>
+<option>Julio</option>
+<option>Agosto</option>
+<option>Septiembre</option>
+<option>Octubre</option>
+<option>Noviembre</option>
+<option>Diciembre</option>
+</select>
+
 <input type="text" id="nombreInput" placeholder="Nombre">
+
 <button onclick="guardar()" style="background:#00c853;">💾 Guardar</button>
 <button onclick="agregarFila()" style="background:#2196f3;">➕</button>
+
 </div>
 
 <h2 style="padding:10px;">📈 TABLA</h2>
@@ -72,7 +92,6 @@ const URL="https://script.google.com/macros/s/AKfycbzYLP0nitSFnqpR_6eWFfSEraVlOB
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
 
-// detectar input activo
 document.addEventListener("focusin",e=>{
 if(e.target.classList.contains("imginput")){
 inputActivo=e.target;
@@ -98,18 +117,15 @@ f.querySelectorAll("img")[i].src=e.target.value;
 });
 }
 
-// 🔥 CATALOGO AUTOMATICO DESDE GITHUB
+// 🔥 CATALOGO GITHUB
 fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
 .then(res=>res.json())
 .then(data=>{
-
 data.forEach(file=>{
-
 if(file.type==="file"){
 
 let nombre=file.name;
 let url=file.download_url;
-
 let categoria="cat_o";
 
 if(nombre.startsWith("relojcurrenh")) categoria="cat_h";
@@ -130,12 +146,10 @@ inputActivo.dispatchEvent(new Event("input"));
 document.getElementById(categoria).appendChild(img);
 
 }
-
+});
 });
 
-});
-
-// 🔥 GUARDAR EN GOOGLE
+// 🔥 GUARDAR
 function guardar(){
 
 let productos=[];
@@ -152,6 +166,7 @@ cantidad:f.cells[5].children[0].value
 }
 
 let datos={
+mes:document.getElementById("mes").value,
 nombre:document.getElementById("nombreInput").value,
 productos:productos
 };
@@ -161,10 +176,9 @@ method:"POST",
 body:JSON.stringify(datos)
 });
 
-alert("Guardado 🔥");
+alert("Guardado con mes 🔥");
 }
 
-// iniciar con una fila
 agregarFila();
 
 </script>
