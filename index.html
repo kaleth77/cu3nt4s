@@ -178,34 +178,48 @@ function guardar(){
     }
 
     for(let f of filas){
+        // Capturamos los datos de cada fila
+        let img1 = f.cells[0].children[0].value;
+        let img2 = f.cells[1].children[0].value;
+        let nombre = f.cells[2].children[0].value;
+        let mes = document.getElementById("mes").value;
+        
         let invVal = f.cells[3].children[0].value;
         let venVal = f.cells[4].children[0].value;
         let cantVal = f.cells[5].children[0].value;
 
-        let invertido = limpiarNumero(invVal);
-        let venta = limpiarNumero(venVal);
+        // Limpiamos los números para poder calcular
+        let invertidoUnidad = limpiarNumero(invVal);
+        let ventaUnidad = limpiarNumero(venVal);
         let cant = Number(cantVal);
 
-        if(!invVal || !venVal) continue; // Salta filas vacías
+        // Si no hay nombre o valores, saltamos la fila
+        if(!nombre || !invVal || !venVal) continue; 
 
-        let total = venta * cant;
-        let ganancia = total - (invertido * cant);
-        let porcentaje = (invertido === 0) ? 0 : ((ganancia / (invertido * cant)) * 100).toFixed(1);
+        // CÁLCULOS
+        let totalInvertido = invertidoUnidad * cant;
+        let totalVenta = ventaUnidad * cant;
+        let ganancia = totalVenta - totalInvertido;
+        
+        // FÓRMULA PARA EL 90% (Margen de utilidad real)
+        let porcentaje = (totalVenta === 0) ? 0 : ((ganancia / totalVenta) * 100).toFixed(1);
 
+        // Armamos el orden exacto para las columnas de Google Sheets (A hasta H)
         productos.push([
-            f.cells[0].children[0].value, // Img1 (Col A)
-            f.cells[1].children[0].value, // Img2 (Col B)
-            f.cells[2].children[0].value, // Nombre (Col C)
-            document.getElementById("mes").value, // Mes (Col D)
-            invertido, // Invertido (Col E)
-            total,     // Venta Total (Col F)
-            ganancia,  // Ganancia (Col G)
-            porcentaje + "%" // % (Col H)
+            img1,             // Col A
+            img2,             // Col B
+            nombre,           // Col C
+            mes,              // Col D
+            totalInvertido,   // Col E
+            totalVenta,       // Col F
+            ganancia,         // Col G
+            porcentaje + "%"  // Col H
         ]);
     }
 
-    if (productos.length === 0) return;
+    if(productos.length === 0) return;
 
+    // Enviamos a Google Sheets
     fetch(URL, {
         method: "POST",
         mode: "no-cors", 
@@ -213,13 +227,11 @@ function guardar(){
         body: JSON.stringify({ "datos": productos })
     })
     .then(() => {
-        alert("¡Enviado a Google Sheets! 🔥");
-        // Opcional: limpiar tabla tras guardar
-        // tabla.innerHTML = ""; 
-        // agregarFila();
+        alert("¡Guardado bien bacano en las celdas G2, H2 y siguientes! 🔥");
     })
     .catch(err => alert("Error al conectar ❌"));
 }
+
 
 agregarFila();
 
