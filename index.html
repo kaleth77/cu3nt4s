@@ -9,7 +9,7 @@
 body{font-family:Arial;background:#0f0f0f;color:white;margin:0;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th,td{border:1px solid #333;padding:5px;text-align:center;}
-input,select{background:#1a1a1a;color:white;border:none;padding:5px;border-radius:5px;}
+input,select{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;border-radius:5px;}
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
 button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
@@ -23,14 +23,13 @@ padding:10px;
 border-bottom:1px solid #333;
 display:flex;
 gap:5px;
-flex-wrap:wrap;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 🔥 BARRA FIJA -->
+<!-- 🔥 BARRA FIJA SOLO CON MES -->
 <div class="barra">
 
 <select id="mes">
@@ -47,8 +46,6 @@ flex-wrap:wrap;
 <option>Noviembre</option>
 <option>Diciembre</option>
 </select>
-
-<input type="text" id="nombreInput" placeholder="Nombre">
 
 <button onclick="guardar()" style="background:#00c853;">💾 Guardar</button>
 <button onclick="agregarFila()" style="background:#2196f3;">➕</button>
@@ -92,6 +89,7 @@ const URL="https://script.google.com/macros/s/AKfycbzYLP0nitSFnqpR_6eWFfSEraVlOB
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
 
+// detectar input activo
 document.addEventListener("focusin",e=>{
 if(e.target.classList.contains("imginput")){
 inputActivo=e.target;
@@ -149,7 +147,7 @@ document.getElementById(categoria).appendChild(img);
 });
 });
 
-// 🔥 GUARDAR
+// 🔥 GUARDAR (CON MES)
 function guardar(){
 
 let productos=[];
@@ -167,7 +165,6 @@ cantidad:f.cells[5].children[0].value
 
 let datos={
 mes:document.getElementById("mes").value,
-nombre:document.getElementById("nombreInput").value,
 productos:productos
 };
 
@@ -176,7 +173,7 @@ method:"POST",
 body:JSON.stringify(datos)
 });
 
-alert("Guardado con mes 🔥");
+alert("Guardado 🔥");
 }
 
 agregarFila();
