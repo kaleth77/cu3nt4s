@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabla PRO</title>
-
+<title>KP Admin - Historial</title>
 <style>
 body{font-family:Arial;background:#0f0f0f;color:white;margin:0;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -13,20 +12,12 @@ input,select{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;b
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
 button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
-
-.barra{
-position:sticky;
-top:0;
-z-index:999;
-background:#0f0f0f;
-padding:10px;
-border-bottom:1px solid #333;
-display:flex;
-gap:5px;
-}
+.barra{position:sticky;top:0;z-index:999;background:#0f0f0f;padding:10px;border-bottom:1px solid #333;display:flex;gap:5px;}
+/* Estilo para las filas ya guardadas */
+.guardado { background: #004d40 !important; opacity: 0.8; }
+.guardado input { pointer-events: none; color: #aaa; }
 </style>
 </head>
-
 <body>
 
 <div class="barra">
@@ -35,58 +26,43 @@ gap:5px;
 <option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option>
 <option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
 </select>
-<button onclick="guardar()" style="background:#00c853;">💾 Guardar</button>
+<button onclick="guardar()" style="background:#00c853;">💾 Guardar Nuevos</button>
 <button onclick="agregarFila()" style="background:#2196f3;">➕</button>
-<button onclick="borrarCache()" style="background:#f44336;">🗑️</button>
+<button onclick="borrarTodo()" style="background:#f44336;">🗑️ Limpiar Todo</button>
 </div>
 
-<h2 style="padding:10px;">📈 TABLA</h2>
+<h2 style="padding:10px;">📈 REGISTRO KP</h2>
 <table id="tabla">
 <thead>
-<tr>
-<th>Img1</th>
-<th>Img2</th>
-<th>Nombre</th>
-<th>Invertido</th>
-<th>Venta</th>
-<th>Cant</th>
-</tr>
+<tr><th>Img1</th><th>Img2</th><th>Nombre</th><th>Invertido</th><th>Venta</th><th>Cant</th></tr>
 </thead>
 <tbody></tbody>
 </table>
 
 <h2 style="padding:10px;">🖼️ Catálogo</h2>
-<h3 style="padding-left:10px;">👨 Hombre</h3>
 <div id="cat_h" class="galeria"></div>
-<h3 style="padding-left:10px;">👩 Mujer</h3>
 <div id="cat_m" class="galeria"></div>
-<h3 style="padding-left:10px;">💑 Pareja</h3>
 <div id="cat_p" class="galeria"></div>
-<h3 style="padding-left:10px;">📦 Otros</h3>
 <div id="cat_o" class="galeria"></div>
 
 <script>
 const URL="https://script.google.com/macros/s/AKfycbxjZn5aPhLdDEbyHPHep3EeDxEvIKu-gg3o3sXSb0whcWyAR9qwxov8KIC6sUzF91tFww/exec";
-
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
 
 document.addEventListener("focusin",e=>{
-if(e.target.classList.contains("imginput")){
-inputActivo=e.target;
-}
+    if(e.target.classList.contains("imginput")) inputActivo=e.target;
 });
 
 function formatearNumero(valor){
-valor = valor.replace(/\./g,"").replace(/\D/g,"");
-return valor.replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    valor = String(valor).replace(/\./g,"").replace(/\D/g,"");
+    return valor.replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
 
 function limpiarNumero(valor){
-return Number(String(valor).replace(/\./g,""));
+    return Number(String(valor).replace(/\./g,""));
 }
 
-// 💾 GUARDAR EN MEMORIA LOCAL PARA QUE NO SE BORRE AL SALIR
 function respaldar(){
     let datos = [];
     for(let f of tabla.rows){
@@ -96,91 +72,55 @@ function respaldar(){
             nom: f.cells[2].children[0].value,
             inv: f.cells[3].children[0].value,
             ven: f.cells[4].children[0].value,
-            can: f.cells[5].children[0].value
+            can: f.cells[5].children[0].value,
+            est: f.classList.contains("guardado") // Guardamos si ya fue enviado
         });
     }
-    localStorage.setItem("datos_tabla", JSON.stringify(datos));
+    localStorage.setItem("kp_data", JSON.stringify(datos));
 }
 
-// 📂 CARGAR DATOS AL ABRIR LA APP
 function cargar(){
-    let guardado = localStorage.getItem("datos_tabla");
-    if(guardado){
-        let datos = JSON.parse(guardado);
-        datos.forEach(d => agregarFila(d));
+    let g = localStorage.getItem("kp_data");
+    if(g){
+        JSON.parse(g).forEach(d => agregarFila(d));
     } else {
         agregarFila();
     }
 }
 
-function borrarCache(){
-    if(confirm("¿Borrar todo?")){
-        localStorage.removeItem("datos_tabla");
-        tabla.innerHTML = "";
-        agregarFila();
-    }
-}
-
 function agregarFila(d = null){
-let f=tabla.insertRow();
-f.innerHTML=`
-<td><input class="imginput" value="${d?d.i1:''}"><br><img src="${d?d.i1:''}"></td>
-<td><input class="imginput" value="${d?d.i2:''}"><br><img src="${d?d.i2:''}"></td>
-<td><input placeholder="Nombre" value="${d?d.nom:''}" oninput="respaldar()"></td>
-<td><input class="numero" placeholder="Invertido" value="${d?d.inv:''}" oninput="respaldar()"></td>
-<td><input class="numero" placeholder="Venta" value="${d?d.ven:''}" oninput="respaldar()"></td>
-<td><input type="number" value="${d?d.can:'1'}" oninput="respaldar()"></td>
-`;
+    let f=tabla.insertRow();
+    if(d && d.est) f.classList.add("guardado");
 
-f.querySelectorAll(".imginput").forEach((inp,i)=>{
-inp.oninput=e=>{
-f.querySelectorAll("img")[i].src=e.target.value;
-respaldar();
-};
-});
+    f.innerHTML=`
+        <td><input class="imginput" value="${d?d.i1:''}"><br><img src="${d?d.i1:''}"></td>
+        <td><input class="imginput" value="${d?d.i2:''}"><br><img src="${d?d.i2:''}"></td>
+        <td><input placeholder="Nombre" value="${d?d.nom:''}" oninput="respaldar()"></td>
+        <td><input class="numero" placeholder="Invertido" value="${d?d.inv:''}" oninput="respaldar()"></td>
+        <td><input class="numero" placeholder="Venta" value="${d?d.ven:''}" oninput="respaldar()"></td>
+        <td><input type="number" value="${d?d.can:'1'}" oninput="respaldar()"></td>
+    `;
 
-f.querySelectorAll(".numero").forEach(inp=>{
-inp.oninput=e=>{
-let cursor = e.target.selectionStart;
-e.target.value = formatearNumero(e.target.value);
-e.target.setSelectionRange(cursor,cursor);
-respaldar();
-};
-});
+    f.querySelectorAll("input").forEach(inp => {
+        inp.addEventListener("input", respaldar);
+    });
+
+    f.querySelectorAll(".numero").forEach(inp=>{
+        inp.oninput=e=>{
+            e.target.value = formatearNumero(e.target.value);
+            respaldar();
+        };
+    });
 }
 
-// 🔥 CATALOGO AUTOMÁTICO (TU CÓDIGO)
-fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
-.then(res=>res.json())
-.then(data=>{
-data.forEach(file=>{
-if(file.type==="file"){
-let nombre=file.name;
-let url=file.download_url;
-let categoria="cat_o";
-if(nombre.startsWith("relojcurrenh")) categoria="cat_h";
-else if(nombre.startsWith("relojcurrenm")) categoria="cat_m";
-else if(nombre.startsWith("relojcurrenp")) categoria="cat_p";
-else if(nombre.startsWith("relojcurreno")) categoria="cat_o";
-let img=document.createElement("img");
-img.src=url;
-img.onclick=()=>{
-if(inputActivo){
-inputActivo.value=url;
-inputActivo.dispatchEvent(new Event("input"));
-}
-};
-document.getElementById(categoria).appendChild(img);
-}
-});
-});
-
-// 🔥 GUARDAR EN SHEETS (SIN REPETIR Y CON 90%)
 function guardar(){
     let productos = [];
-    let filas = Array.from(tabla.rows);
+    let filasAProcesar = [];
 
-    for(let f of filas){
+    for(let f of tabla.rows){
+        // SOLO enviamos las que NO tengan la clase "guardado"
+        if(f.classList.contains("guardado")) continue;
+
         let nombre = f.cells[2].children[0].value;
         if(!nombre) continue;
 
@@ -198,29 +138,52 @@ function guardar(){
             nombre, document.getElementById("mes").value,
             totalInv, totalVen, ganancia, porcentaje + "%"
         ]);
+        filasAProcesar.push(f);
     }
 
-    if(productos.length === 0) return alert("Nada nuevo");
+    if(productos.length === 0) return alert("No hay datos nuevos para guardar");
 
     fetch(URL, {
         method: "POST",
         mode: "no-cors", 
-        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({ "datos": productos })
     })
     .then(() => {
-        alert("¡Guardado en Sheets! 🔥");
-        // Limpiamos pantalla y memoria para que no se repita
-        tabla.innerHTML = "";
-        localStorage.removeItem("datos_tabla");
-        agregarFila();
+        alert("¡Nuevos datos guardados! ✅");
+        // Marcamos las filas como guardadas para que no se repitan
+        filasAProcesar.forEach(f => f.classList.add("guardado"));
+        respaldar();
     })
-    .catch(err => alert("Error ❌"));
+    .catch(() => alert("Error ❌"));
 }
 
-// Cargar al inicio
-cargar();
+function borrarTodo(){
+    if(confirm("¿Borrar historial completo?")){
+        localStorage.removeItem("kp_data");
+        tabla.innerHTML = "";
+        agregarFila();
+    }
+}
 
+// Catálogo (Tu código)
+fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
+.then(res=>res.json()).then(data=>{
+    data.forEach(file=>{
+        if(file.type==="file"){
+            let url=file.download_url;
+            let img=document.createElement("img");
+            img.src=url;
+            img.onclick=()=>{ if(inputActivo){ inputActivo.value=url; inputActivo.dispatchEvent(new Event("input")); } };
+            let cat = "cat_o";
+            if(file.name.includes("h")) cat="cat_h";
+            else if(file.name.includes("m")) cat="cat_m";
+            else if(file.name.includes("p")) cat="cat_p";
+            document.getElementById(cat).appendChild(img);
+        }
+    });
+});
+
+cargar();
 </script>
 </body>
 </html>
