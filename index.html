@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KP Admin - Historial</title>
+<title>KP Admin - Registro Real</title>
+
 <style>
 body{font-family:Arial;background:#0f0f0f;color:white;margin:0;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -12,12 +13,30 @@ input,select{width:100%;background:#1a1a1a;color:white;border:none;padding:5px;b
 img{width:45px;height:45px;border-radius:6px;margin:2px;}
 .galeria img{width:60px;height:60px;cursor:pointer;}
 button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
-.barra{position:sticky;top:0;z-index:999;background:#0f0f0f;padding:10px;border-bottom:1px solid #333;display:flex;gap:5px;}
-/* Estilo para las filas ya guardadas */
-.guardado { background: #004d40 !important; opacity: 0.8; }
-.guardado input { pointer-events: none; color: #aaa; }
+
+.barra{
+position:sticky;
+top:0;
+z-index:999;
+background:#0f0f0f;
+padding:10px;
+border-bottom:1px solid #333;
+display:flex;
+gap:5px;
+}
+
+/* Estilo para las filas que ya están en Google Sheets */
+.enviado {
+    background: #004d40 !important; /* Verde oscuro */
+    opacity: 0.8;
+}
+.enviado input {
+    pointer-events: none; /* No permite editar lo ya guardado */
+    color: #aaa;
+}
 </style>
 </head>
+
 <body>
 
 <div class="barra">
@@ -28,13 +47,21 @@ button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
 </select>
 <button onclick="guardar()" style="background:#00c853;">💾 Guardar Nuevos</button>
 <button onclick="agregarFila()" style="background:#2196f3;">➕</button>
-<button onclick="borrarTodo()" style="background:#f44336;">🗑️ Limpiar Todo</button>
+<button onclick="borrarHistorial()" style="background:#f44336;">🗑️</button>
 </div>
 
 <h2 style="padding:10px;">📈 REGISTRO KP</h2>
+
 <table id="tabla">
 <thead>
-<tr><th>Img1</th><th>Img2</th><th>Nombre</th><th>Invertido</th><th>Venta</th><th>Cant</th></tr>
+<tr>
+<th>Img1</th>
+<th>Img2</th>
+<th>Nombre</th>
+<th>Invertido</th>
+<th>Venta</th>
+<th>Cant</th>
+</tr>
 </thead>
 <tbody></tbody>
 </table>
@@ -47,6 +74,7 @@ button{padding:8px;border:none;color:white;border-radius:6px;font-weight:bold;}
 
 <script>
 const URL="https://script.google.com/macros/s/AKfycbxjZn5aPhLdDEbyHPHep3EeDxEvIKu-gg3o3sXSb0whcWyAR9qwxov8KIC6sUzF91tFww/exec";
+
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
 
@@ -63,6 +91,7 @@ function limpiarNumero(valor){
     return Number(String(valor).replace(/\./g,""));
 }
 
+// 💾 RESPALDO EN MEMORIA DEL CELULAR
 function respaldar(){
     let datos = [];
     for(let f of tabla.rows){
@@ -73,16 +102,16 @@ function respaldar(){
             inv: f.cells[3].children[0].value,
             ven: f.cells[4].children[0].value,
             can: f.cells[5].children[0].value,
-            est: f.classList.contains("guardado") // Guardamos si ya fue enviado
+            est: f.classList.contains("enviado") // Guardamos si ya está bloqueada
         });
     }
-    localStorage.setItem("kp_data", JSON.stringify(datos));
+    localStorage.setItem("kp_historial", JSON.stringify(datos));
 }
 
 function cargar(){
-    let g = localStorage.getItem("kp_data");
-    if(g){
-        JSON.parse(g).forEach(d => agregarFila(d));
+    let historial = localStorage.getItem("kp_historial");
+    if(historial){
+        JSON.parse(historial).forEach(d => agregarFila(d));
     } else {
         agregarFila();
     }
@@ -90,7 +119,7 @@ function cargar(){
 
 function agregarFila(d = null){
     let f=tabla.insertRow();
-    if(d && d.est) f.classList.add("guardado");
+    if(d && d.est) f.classList.add("enviado"); // Si ya estaba guardada, se bloquea
 
     f.innerHTML=`
         <td><input class="imginput" value="${d?d.i1:''}"><br><img src="${d?d.i1:''}"></td>
@@ -101,8 +130,11 @@ function agregarFila(d = null){
         <td><input type="number" value="${d?d.can:'1'}" oninput="respaldar()"></td>
     `;
 
-    f.querySelectorAll("input").forEach(inp => {
-        inp.addEventListener("input", respaldar);
+    f.querySelectorAll(".imginput").forEach((inp,i)=>{
+        inp.oninput=e=>{
+            f.querySelectorAll("img")[i].src=e.target.value;
+            respaldar();
+        };
     });
 
     f.querySelectorAll(".numero").forEach(inp=>{
@@ -113,13 +145,14 @@ function agregarFila(d = null){
     });
 }
 
+// 🔥 GUARDAR SOLO LO NUEVO
 function guardar(){
     let productos = [];
-    let filasAProcesar = [];
+    let filasNuevas = [];
 
     for(let f of tabla.rows){
-        // SOLO enviamos las que NO tengan la clase "guardado"
-        if(f.classList.contains("guardado")) continue;
+        // Si la fila YA tiene el candado (clase "enviado"), la saltamos
+        if(f.classList.contains("enviado")) continue;
 
         let nombre = f.cells[2].children[0].value;
         if(!nombre) continue;
@@ -138,10 +171,10 @@ function guardar(){
             nombre, document.getElementById("mes").value,
             totalInv, totalVen, ganancia, porcentaje + "%"
         ]);
-        filasAProcesar.push(f);
+        filasNuevas.push(f);
     }
 
-    if(productos.length === 0) return alert("No hay datos nuevos para guardar");
+    if(productos.length === 0) return alert("No hay nada nuevo para guardar");
 
     fetch(URL, {
         method: "POST",
@@ -149,17 +182,17 @@ function guardar(){
         body: JSON.stringify({ "datos": productos })
     })
     .then(() => {
-        alert("¡Nuevos datos guardados! ✅");
-        // Marcamos las filas como guardadas para que no se repitan
-        filasAProcesar.forEach(f => f.classList.add("guardado"));
-        respaldar();
+        alert("¡Nuevos datos guardados en Google Sheets! 🔥");
+        // Ponemos el "candado" a las filas que acabamos de enviar
+        filasNuevas.forEach(f => f.classList.add("enviado"));
+        respaldar(); // Guardamos el estado de bloqueo en el celular
     })
-    .catch(() => alert("Error ❌"));
+    .catch(() => alert("Error al conectar ❌"));
 }
 
-function borrarTodo(){
-    if(confirm("¿Borrar historial completo?")){
-        localStorage.removeItem("kp_data");
+function borrarHistorial(){
+    if(confirm("¿Borrar todo el registro de la pantalla?")){
+        localStorage.removeItem("kp_historial");
         tabla.innerHTML = "";
         agregarFila();
     }
