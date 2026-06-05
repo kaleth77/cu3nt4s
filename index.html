@@ -60,6 +60,7 @@ gap:5px;
 <th>Invertido</th>
 <th>Venta</th>
 <th>Cant</th>
+<th>❌</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -134,6 +135,8 @@ function agregarFila(d = null){
         <td><input class="numero" placeholder="Invertido" value="${d?d.inv:''}" oninput="respaldar()"></td>
         <td><input class="numero" placeholder="Venta" value="${d?d.ven:''}" oninput="respaldar()"></td>
         <td><input type="number" value="${d?d.can:'1'}" oninput="respaldar()"></td>
+        <td><button onclick="eliminarFila(this)" style="background:#f44336;">🗑️</button></td>
+        
     `;
 
     // 🔥 Arreglo para que las fotos carguen al escribir o elegir del catálogo
@@ -192,6 +195,18 @@ function guardar(){
         respaldar();
     })
     .catch(() => alert("Error ❌"));
+}
+
+function eliminarFila(btn){
+    if(confirm("¿Eliminar esta compra?")){
+        btn.closest("tr").remove();
+
+        if(tabla.rows.length === 0){
+            agregarFila();
+        }
+
+        respaldar();
+    }
 }
 
 function borrarHistorial(){
