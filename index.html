@@ -92,6 +92,7 @@ function limpiarNumero(valor){
 
 function respaldar(){
     let datos = [];
+
     for(let f of tabla.rows){
         datos.push({
             i1: f.cells[0].children[0].value,
@@ -103,15 +104,21 @@ function respaldar(){
             est: f.classList.contains("enviado")
         });
     }
-    localStorage.setItem("kp_historial", JSON.stringify(datos));
+
+    let mes = document.getElementById("mes").value;
+    localStorage.setItem("kp_historial_" + mes, JSON.stringify(datos));
 }
 
 function cargar(){
-    let historial = localStorage.getItem("kp_historial");
+    let mes = document.getElementById("mes").value;
+
+    let historial = localStorage.getItem("kp_historial_" + mes);
+
     tabla.innerHTML = "";
+
     if(historial){
         JSON.parse(historial).forEach(d => agregarFila(d));
-    } else {
+    }else{
         agregarFila();
     }
 }
@@ -207,6 +214,7 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
                     inputActivo.value=url; 
                     // Esto dispara el cambio para que la foto se vea
                     inputActivo.dispatchEvent(new Event("input")); 
+                    document.getElementById("mes").addEventListener("change", cargar);
                 } 
             };
             let cat = "cat_o";
@@ -217,6 +225,13 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
         }
     });
 });
+    const meses = [
+"Enero","Febrero","Marzo","Abril",
+"Mayo","Junio","Julio","Agosto",
+"Septiembre","Octubre","Noviembre","Diciembre"
+];
+
+document.getElementById("mes").value = meses[new Date().getMonth()];
 
 cargar();
 </script>
