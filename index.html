@@ -44,6 +44,13 @@ gap:5px;
 <option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option>
 <option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
 </select>
+<select id="anio">
+<option>2026</option>
+<option>2027</option>
+<option>2028</option>
+<option>2029</option>
+<option>2030</option>
+</select>
 <button onclick="guardar()" style="background:#00c853;">💾 Guardar Nuevos</button>
 <button onclick="agregarFila()" style="background:#2196f3;">➕</button>
 <button onclick="borrarHistorial()" style="background:#f44336;">🗑️</button>
@@ -107,13 +114,20 @@ function respaldar(){
     }
 
     let mes = document.getElementById("mes").value;
-    localStorage.setItem("kp_historial_" + mes, JSON.stringify(datos));
+    let anio = document.getElementById("anio").value;
+    localStorage.setItem(
+    "kp_historial_" + anio + "_" + mes,
+    JSON.stringify(datos)
+);
 }
 
 function cargar(){
     let mes = document.getElementById("mes").value;
+    let anio = document.getElementById("anio").value;
 
-    let historial = localStorage.getItem("kp_historial_" + mes);
+    let historial = localStorage.getItem(
+        "kp_historial_" + anio + "_" + mes
+    );
 
     tabla.innerHTML = "";
 
@@ -123,6 +137,7 @@ function cargar(){
         agregarFila();
     }
 }
+
 
 function agregarFila(d = null){
     let f=tabla.insertRow();
@@ -210,8 +225,14 @@ function eliminarFila(btn){
 }
 
 function borrarHistorial(){
-    if(confirm("¿Borrar todo?")){
-        localStorage.removeItem("kp_historial");
+    let mes = document.getElementById("mes").value;
+    let anio = document.getElementById("anio").value;
+
+    if(confirm("¿Borrar todo " + mes + " " + anio + "?")){
+        localStorage.removeItem(
+            "kp_historial_" + anio + "_" + mes
+        );
+
         tabla.innerHTML = "";
         agregarFila();
     }
@@ -229,7 +250,7 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
                     inputActivo.value=url; 
                     // Esto dispara el cambio para que la foto se vea
                     inputActivo.dispatchEvent(new Event("input")); 
-                    document.getElementById("mes").addEventListener("change", cargar);
+                    
                 } 
             };
             let cat = "cat_o";
@@ -247,6 +268,10 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
 ];
 
 document.getElementById("mes").value = meses[new Date().getMonth()];
+document.getElementById("anio").value =
+new Date().getFullYear();
+document.getElementById("mes").addEventListener("change", cargar);
+document.getElementById("anio").addEventListener("change", cargar);
 
 cargar();
 </script>
