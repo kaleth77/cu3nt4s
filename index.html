@@ -162,8 +162,18 @@ function recalcularFila(f){
     [p1, p2].forEach(p => {
         if(!p) return;
         sumaVenta += precioVentaReal(p); // ya considera precioRebaja si aplica
-        if(p.precioCompra && p.precioCompra.trim() !== "" && !isNaN(parseInt(p.precioCompra))){
-            sumaCompra += parseInt(p.precioCompra);
+
+        // Si el producto está en oferta (precioRebaja con valor), el costo real
+        // también cambia y se debe tomar de precioCompraO en lugar de precioCompra.
+        const tieneRebaja = p.precioRebaja
+            && p.precioRebaja.trim() !== ""
+            && !isNaN(parseInt(p.precioRebaja))
+            && parseInt(p.precioRebaja) > 0;
+
+        const compraUsar = tieneRebaja ? p.precioCompraO : p.precioCompra;
+
+        if(compraUsar && compraUsar.trim() !== "" && !isNaN(parseInt(compraUsar))){
+            sumaCompra += parseInt(compraUsar);
             hayCompra = true;
         }
     });
