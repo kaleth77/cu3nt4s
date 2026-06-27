@@ -81,12 +81,49 @@ gap:5px;
 
 <script>
 const URL="https://script.google.com/macros/s/AKfycbxjZn5aPhLdDEbyHPHep3EeDxEvIKu-gg3o3sXSb0whcWyAR9qwxov8KIC6sUzF91tFww/exec";
+const SHEET_PRODUCTOS_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS02ENtcg8PoDQ8rIsUqjDJqXxwbDjsDEOqbSdMAGUIY4U_6ruB1N2M-UcXaWFJbEgZe-J4Yk4asPKP/pub?gid=727495021&single=true&output=csv";
 
 let tabla=document.querySelector("#tabla tbody");
 let inputActivo=null;
+let filaActiva=null;
+let productosKP={}; // mapa: nombre de archivo de imagen -> {nombre, precio}
+
+function parsearCSV(texto){
+    const filas = texto.trim().split("\n");
+    const encabezados = filas[0].split(",").map(e => e.trim());
+    return filas.slice(1).map(fila => {
+        const valores = [];
+        let actual = "";
+        let dentroComillas = false;
+        for (let c of fila) {
+            if (c === '"') { dentroComillas = !dentroComillas; }
+            else if (c === ',' && !dentroComillas) { valores.push(actual.trim()); actual = ""; }
+            else { actual += c; }
+        }
+        valores.push(actual.trim());
+        const obj = {};
+        encabezados.forEach((enc, i) => obj[enc] = valores[i] || "");
+        return obj;
+    });
+}
+
+function cargarProductosKP(){
+    fetch(SHEET_PRODUCTOS_URL)
+        .then(res => res.text())
+        .then(csv => {
+            const productos = parsearCSV(csv);
+            productos.forEach(p => {
+                if(p.imagen) productosKP[p.imagen.trim()] = p;
+            });
+        })
+        .catch(() => console.error("No se pudieron cargar los precios de KP"));
+}
 
 document.addEventListener("focusin",e=>{
-    if(e.target.classList.contains("imginput")) inputActivo=e.target;
+    if(e.target.classList.contains("imginput")){
+        inputActivo=e.target;
+        filaActiva=e.target.closest("tr");
+    }
 });
 
 function formatearNumero(valor){
@@ -245,13 +282,21 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
             let url=file.download_url;
             let img=document.createElement("img");
             img.src=url;
-            img.onclick=()=>{ 
-                if(inputActivo){ 
-                    inputActivo.value=url; 
-                    // Esto dispara el cambio para que la foto se vea
-                    inputActivo.dispatchEvent(new Event("input")); 
-                    
-                } 
+            img.onclick=()=>{
+                if(inputActivo){
+                    inputActivo.value=url;
+                    inputActivo.dispatchEvent(new Event("input"));
+
+                    // Autocompletar nombre y precio de venta desde KP, si el producto existe
+                    let producto = productosKP[file.name.trim()];
+                    if(producto && filaActiva){
+                        let inputNombre = filaActiva.cells[2].children[0];
+                        let inputVenta = filaActiva.cells[4].children[0];
+                        if(inputNombre && !inputNombre.value) inputNombre.value = producto.nombre;
+                        if(inputVenta) inputVenta.value = formatearNumero(producto.precio);
+                        respaldar();
+                    }
+                }
             };
             let cat = "cat_o";
             if(file.name.includes("h")) cat="cat_h";
@@ -273,6 +318,7 @@ new Date().getFullYear();
 document.getElementById("mes").addEventListener("change", cargar);
 document.getElementById("anio").addEventListener("change", cargar);
 
+cargarProductosKP();
 cargar();
 </script>
 </body>
