@@ -119,6 +119,59 @@ function cargarProductosKP(){
         .catch(() => console.error("No se pudieron cargar los precios de KP"));
 }
 
+// Saca el nombre de archivo de una URL tipo .../img/relojcurrenh1.jpg -> relojcurrenh1.jpg
+function nombreArchivoDeUrl(url){
+    if(!url) return "";
+    return url.split("/").pop().trim();
+}
+
+// Devuelve el precio que realmente se cobra por un producto: si tiene precioRebaja válido
+// (igual que la lógica de la tienda KP), usa ese; si no, el precio normal.
+function precioVentaReal(p){
+    const precioNum = parseInt(p.precio) || 0;
+    const tieneRebaja = p.precioRebaja
+        && p.precioRebaja.trim() !== ""
+        && !isNaN(parseInt(p.precioRebaja))
+        && parseInt(p.precioRebaja) > 0
+        && parseInt(p.precioRebaja) < precioNum;
+    return tieneRebaja ? parseInt(p.precioRebaja) : precioNum;
+}
+
+// Recalcula Invertido y Venta de una fila sumando los precios base de Img1 + Img2,
+// multiplicado por la Cantidad. Si una imagen no tiene match en el Sheet, no suma nada por ella.
+function recalcularFila(f){
+    const inputImg1 = f.cells[0].children[0];
+    const inputImg2 = f.cells[1].children[0];
+    const inputInv = f.cells[3].children[0];
+    const inputVen = f.cells[4].children[0];
+    const inputCant = f.cells[5].children[0];
+
+    const p1 = productosKP[nombreArchivoDeUrl(inputImg1.value)];
+    const p2 = productosKP[nombreArchivoDeUrl(inputImg2.value)];
+
+    // Si ninguna de las dos fotos hace match con un producto del Sheet, dejamos los campos como están
+    // (permite seguir usando la fila aunque la foto no esté en el catálogo de KP)
+    if(!p1 && !p2) return;
+
+    const cant = Number(inputCant.value) || 1;
+
+    let sumaVenta = 0;
+    let sumaCompra = 0;
+    let hayCompra = false;
+
+    [p1, p2].forEach(p => {
+        if(!p) return;
+        sumaVenta += precioVentaReal(p); // ya considera precioRebaja si aplica
+        if(p.precioCompra && p.precioCompra.trim() !== "" && !isNaN(parseInt(p.precioCompra))){
+            sumaCompra += parseInt(p.precioCompra);
+            hayCompra = true;
+        }
+    });
+
+    inputVen.value = formatearNumero(sumaVenta * cant);
+    if(hayCompra) inputInv.value = formatearNumero(sumaCompra * cant);
+}
+
 document.addEventListener("focusin",e=>{
     if(e.target.classList.contains("imginput")){
         inputActivo=e.target;
@@ -205,6 +258,12 @@ function agregarFila(d = null){
             respaldar();
         };
     });
+
+    const inputCant = f.cells[5].children[0];
+    inputCant.addEventListener("input", () => {
+        recalcularFila(f);
+        respaldar();
+    });
 }
 
 function guardar(){
@@ -287,13 +346,14 @@ fetch("https://api.github.com/repos/kaleth77/kpreloj/contents/img")
                     inputActivo.value=url;
                     inputActivo.dispatchEvent(new Event("input"));
 
-                    // Autocompletar nombre y precio de venta desde KP, si el producto existe
+                    // Autocompletar nombre (solo si está vacío) y recalcular Invertido/Venta
                     let producto = productosKP[file.name.trim()];
                     if(producto && filaActiva){
                         let inputNombre = filaActiva.cells[2].children[0];
-                        let inputVenta = filaActiva.cells[4].children[0];
                         if(inputNombre && !inputNombre.value) inputNombre.value = producto.nombre;
-                        if(inputVenta) inputVenta.value = formatearNumero(producto.precio);
+                    }
+                    if(filaActiva){
+                        recalcularFila(filaActiva);
                         respaldar();
                     }
                 }
